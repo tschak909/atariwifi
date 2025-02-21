@@ -375,6 +375,29 @@ int util_ellipsize(const char *src, char *dst, int dstsize)
         return strlcpy(dst, src, dstsize);
     }
 
+    // Replace directories with .../ and only leave the basename.
+    const char *basename = strrchr(src, '/');
+    if (basename != NULL)
+    {
+        if (strlen(basename) > 1 && dstsize >= 5)
+        {
+            basename++; // skip slash
+
+            int result = 4;
+            dst[0] = dst[1] = dst[2] = '.';
+            if (strlen(basename) < dstsize - 3 - 1)
+            {
+                strlcpy(dst + 3, src + srclen - dstsize + 4, dstsize - 3);
+            }
+            else
+            {
+                dst[3] = '/';
+                result += util_ellipsize(basename, dst+4, dstsize-4);
+            }
+            return result;
+        }
+    }
+
     // Account for both the 3-character ellipses and the null character that needs to fit in the destination
     int rightlen = (dstsize - 4) / 2;
     // The left side gets one more character if the destination is odd
